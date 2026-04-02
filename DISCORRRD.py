@@ -226,4 +226,4 @@ async def set_channel(ctx):
     save_config(config_data)
     await ctx.send(f"✅ {ctx.channel.mention} 이제부터 여기가 음악 채널이다!")
 
-bot.run('token')
+bot.run(os.getenv("TOKEN"))
