@@ -27,7 +27,7 @@ players = {}
 
 import imageio_ffmpeg as ffmpeg
 
-YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
+YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': True}
 
 FFMPEG_PATH = ffmpeg.get_ffmpeg_exe()
 
@@ -91,7 +91,7 @@ class MusicControlView(discord.ui.View):
         await interaction.response.send_message("⏹️ 퇴근이다! 퇴근!", ephemeral=True)
 
 # --- 3. UI 업데이트 로직 ---
-async def update_player_ui(message, song_data, voice):
+async def update_player_ui(channel, song_data, voice):
     state = players[message.guild.id]
     state.current_song = song_data
     state.is_waiting = False
@@ -130,7 +130,7 @@ def play_next(message, guild_id):
         next_song = state.queue.pop(0)
         source = discord.FFmpegPCMAudio(next_song['url'], executable=FFMPEG_PATH, **FFMPEG_OPTIONS)
         voice.play(source, after=lambda e: play_next(message, guild_id))
-        asyncio.run_coroutine_threadsafe(update_player_ui(message, next_song, voice), bot.loop)
+        asyncio.run_coroutine_threadsafe(update_player_ui(message.channel, next_song, voice), bot.loop)
     else:
         async def go_idle():
             if state:
@@ -188,7 +188,10 @@ async def on_message(message):
         import discord
 
 try:
+    try:
     await message.delete()
+except:
+    pass
 except discord.NotFound:
     pass
 except discord.Forbidden:
@@ -199,7 +202,10 @@ except discord.Forbidden:
             if gid not in players: players[gid] = PlayerState()
             state = players[gid]
             voice = discord.utils.get(bot.voice_clients, guild=message.guild)
-            if not voice: voice = await message.author.voice.channel.connect()
+            if not voice:
+                voice = await message.author.voice.channel.connect()
+            elif voice.channel != message.author.voice.channel:
+                await voice.move_to(message.author.voice.channel)
 
             search_query = content if content.startswith('http') else f"ytsearch:{content}"
             with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
@@ -241,4 +247,5 @@ async def set_channel(ctx):
     save_config(config_data)
     await ctx.send(f"✅ {ctx.channel.mention} 이제부터 여기가 음악 채널이다!")
 
+import os
 bot.run(os.getenv("TOKEN"))
