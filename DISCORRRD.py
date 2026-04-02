@@ -25,9 +25,17 @@ def save_config(config):
 config_data = load_config()
 players = {} 
 
+import imageio_ffmpeg as ffmpeg
+
 YDL_OPTIONS = {'format': 'bestaudio', 'noplaylist': 'True'}
-FFMPEG_PATH = r'C:\ffmpeg\bin\ffmpeg.exe' # 실제 경로로 수정 필수
-FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
+FFMPEG_PATH = ffmpeg.get_ffmpeg_exe()
+
+FFMPEG_OPTIONS = {
+    'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
+    'options': '-vn',
+    'executable': FFMPEG_PATH
+}
 
 class PlayerState:
     def __init__(self):
