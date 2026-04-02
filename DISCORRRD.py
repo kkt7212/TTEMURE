@@ -185,7 +185,14 @@ async def on_message(message):
     if music_channel_id and message.channel.id == music_channel_id:
         content = message.content.strip()
         if not content: return
-        await message.delete()
+        import discord
+
+try:
+    await message.delete()
+except discord.NotFound:
+    pass
+except discord.Forbidden:
+    pass
 
         if message.author.voice:
             gid = message.guild.id
